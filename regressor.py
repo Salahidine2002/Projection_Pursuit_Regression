@@ -134,7 +134,7 @@ class ProjectionPursuitRegressor() :
         
         return params
     
-    def fit(self, X, y_init, Nb_terms, max_iteration, k_number) : 
+    def fit(self, X, y_init, Nb_terms, max_iteration, k_number, val_set=None) : 
         """Fits the regressor to the input/output vectors given 
 
         Args:
@@ -150,6 +150,7 @@ class ProjectionPursuitRegressor() :
         
         y_current = np.copy(y_init)
         Error = []
+        val_error = []
         for i in range(1, Nb_terms) : 
             if i not in self.terms : 
                 w_init = np.random.normal(0, 1, X.shape[1])
@@ -161,9 +162,11 @@ class ProjectionPursuitRegressor() :
                 w = self.estimate_w(X, y_current, i)  
                 self.terms[i].w = w/np.linalg.norm(w)
                 Error.append(self.loss(X, y_init))
+                if val_set : 
+                    val_error.append(self.loss(val_set[0], val_set[1]))
             y_current -= self.terms[i].output(X)
                 
-        return Error
+        return Error, val_error
     
     def predict(self, X) : 
         """Predicts the output given an input matrix
@@ -194,4 +197,4 @@ class ProjectionPursuitRegressor() :
         
         y_out = self.predict(X) 
         
-        return np.sum((y-y_out)**2)
+        return (np.sum((y-y_out)**2))**0.5
